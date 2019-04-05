@@ -17,7 +17,7 @@ const googleMapsClient = require('@google/maps').createClient({
 // });
 
 
-let currentBusGPSLocation = {lat:22.357647, lng:114.1277058};
+//let currentBusGPSLocation = {lat:22.357647, lng:114.1277058};
 
 
 
@@ -263,7 +263,7 @@ let busRoutes = [
 		});
 	});
 
-	console.log(busStops);
+	//console.log(busStops);
 
 
 
@@ -281,8 +281,9 @@ let busRoutes = [
 // ];
 
 let paramToGoogleMaps = {
-	origins:[currentBusGPSLocation],
-	destinations: [],
+	origin:busStops[0].latlng,
+	destination: busStops[busStops.length - 1].latlng,
+	waypoints: [],
 }
 
 
@@ -299,10 +300,15 @@ let paramToGoogleMaps = {
 // }
 ////////////////////Temp generate Latlng end /////////////
 
-
 busStops.forEach(function(stop) {
-	paramToGoogleMaps.destinations.push(stop.latlng)
+	paramToGoogleMaps.waypoints.push(stop.latlng);
 })
+
+//paramToGoogleMaps.destination = busStops[busStops.length - 1];
+
+// busStops.forEach(function(stop) {
+// 	paramToGoogleMaps.destination = stop.latlng
+// })
 //console.log('paramToGoogleMaps' ,paramToGoogleMaps);
 //return;
 
@@ -313,15 +319,30 @@ busStops.forEach(function(stop) {
 
 // Get Direction for an address.
 let durationArray = [];
-googleMapsClient.distanceMatrix(paramToGoogleMaps, function(err, response) {
+googleMapsClient.directions(paramToGoogleMaps, function(err, response) {
 	if (!err) {
-		console.log('The resonse', response);
+		//console.log('The resonse', util.inspect(response.json.routes[0].legs, {showHidden: false, depth: null}));
 
-		response.json.rows[0].elements.forEach(function(element) {
+		response.json.routes[0].legs.forEach(function(element) {
 			durationArray.push(element.duration);
 			//console.log(util.inspect(element, {showHidden: false, depth: null}));
 		});
-		console.log('durationArray', durationArray);
+
+		//console.log(response.json.routes);
+		//
+		// response.json.rows[0].elements.forEach(function(element) {
+		// 	durationArray.push(element.duration);
+		// 	//console.log(util.inspect(element, {showHidden: false, depth: null}));
+		// });
+		 //console.log('durationArray', durationArray);
+
+		 busStops.forEach(function (element, i) {
+		 	busStops[i].duration_sec = durationArray[i].value;
+		 	busStops[i].duration_text = durationArray[i].text;
+		 })
+ 		 console.log('busStops', busStops);
+		 // console.log('busStops.length', busStops.length);
+		 // console.log('durationArray.length', durationArray.length);
 	} else {
 		console.log('ERROR', err);
 	}
