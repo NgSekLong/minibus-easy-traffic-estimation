@@ -39,11 +39,14 @@ module.exports = function(app, db) {
     // res.send('[{"title":"123"}]');
     // return;
     var param = req.body;
-		if(!param.route_id){
+		if(!param.route_id ){
       res.sendStatus(404)
 			res.send("error");
 			return;
 		}
+    if(!param.route_num_counter){
+      param.route_num_counter = 0;
+    }
 		mongoose.connect(MONGODB_CONNECTION_URI, {useNewUrlParser: true});
 
 		i = 0
@@ -54,7 +57,8 @@ module.exports = function(app, db) {
 				res.send('No Route');
 				return;
 			}
-			var bus_stops = bus[0]['bus_routes']['bus_stops'][0]//.bus_routes[i].bus_stops;
+      // console.log(bus[0]['bus_routes'][0]['bus_stops']);
+			var bus_stops = bus[0]['bus_routes'][param.route_num_counter]['bus_stops']; //.bus_routes[i].bus_stops;
 
 	    var arrivalTimeInfo = await google_map_helper.request_arrival_time(bus_stops);
 			console.log(arrivalTimeInfo);
@@ -143,7 +147,7 @@ module.exports = function(app, db) {
 
           let route_start_at_en = bus_route.route_start_at_en;
           let route_start_at_tc = bus_route.route_start_at_tc;
-          
+
           let route_end_at_en = bus_route.route_end_at_en;
           let route_end_at_tc = bus_route.route_end_at_tc;
 
