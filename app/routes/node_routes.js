@@ -91,25 +91,35 @@ module.exports = function(app, db) {
     // res.setHeader('Content-Type', 'application/json');
     // res.send('[{"title":"123"}]');
     // return;
-    // var param = req.body;
+     var param = req.body;
 		// if(!param.route_id){
     //   res.sendStatus(404)
 		// 	res.send("error");
 		// 	return;
 		// }
+    var mongoQuery = {};
+    // if(!param.route_id){
+    //   res.sendStatus(404)
+    //   res.send("error");
+    //   return;
+    // }
+    if(param.region){
+      mongoQuery.region = param.region;
+    }
 		mongoose.connect(MONGODB_CONNECTION_URI, {useNewUrlParser: true});
 
 		i = 0
 
     let returnBuses = [];
 		const BusRouteModel = mongoose.model(MONGODB_BUS_COLLECTION, BusRoute);
-		BusRouteModel.find({}, async function (err, buses) {
+		BusRouteModel.find(mongoQuery, async function (err, buses) {
 
 			if(buses.length == 0){
 				res.send('No Route');
 				return;
 			}
 
+      console.log(buses);
       buses.forEach(function(bus) {
 
         let busRoutes = bus['bus_routes'];
@@ -139,7 +149,6 @@ module.exports = function(app, db) {
         // console.log('something?');
         // console.log(returnBuses);
         // return;
-
         busRoutes.forEach(function(bus_route) {
           let route_id = bus.route_id;
           let route_number = bus.route_number;
