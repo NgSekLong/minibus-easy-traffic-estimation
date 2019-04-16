@@ -112,7 +112,7 @@ module.exports = function(app, db) {
 
     let returnBuses = [];
 		const BusRouteModel = mongoose.model(MONGODB_BUS_COLLECTION, BusRoute);
-		BusRouteModel.find(mongoQuery, async function (err, buses) {
+		BusRouteModel.find(mongoQuery).sort('route_number').exec( async function (err, buses) {
 
 			if(buses.length == 0){
 				res.send('No Route');
