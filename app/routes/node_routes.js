@@ -58,10 +58,15 @@ module.exports = function(app, db) {
 				return;
 			}
       // console.log(bus[0]['bus_routes'][0]['bus_stops']);
-			var bus_stops = bus[0]['bus_routes'][param.route_num_counter]['bus_stops']; //.bus_routes[i].bus_stops;
+      var busRoutes = bus[0]['bus_routes'];
+      if(busRoutes.length <= param.route_num_counter){
+  				res.send('route_num_counter too large');
+  				return;
+      }
+      var bus_stops = busRoutes[param.route_num_counter]['bus_stops']; //.bus_routes[i].bus_stops;
 
 	    var arrivalTimeInfo = await google_map_helper.request_arrival_time(bus_stops);
-			console.log(arrivalTimeInfo);
+			//console.log(arrivalTimeInfo);
 			res.send(arrivalTimeInfo);
 		  // docs.forEach
 		});

@@ -81,7 +81,58 @@ var request_arrival_time =  function (busStops) {
 
 
   // Get Direction for an address.
-  let durationArray = [];
+	let allGoogleTrafficPromises = [];
+	let GOOGLE_DIRECTION_MAX_LENGTH = 23;
+
+
+	for(let i = 0; i < paramToGoogleMaps.waypoints.length; i += GOOGLE_DIRECTION_MAX_LENGTH){
+		let partialWaypoints = paramToGoogleMaps.waypoints.slice(i, i + GOOGLE_DIRECTION_MAX_LENGTH);
+
+		// console.log('partialWaypoints', partialWaypoints);
+
+	  let partialParamToGoogleMaps = {
+	  	origin:partialWaypoints[0],
+	  	destination: partialWaypoints[partialWaypoints.length - 1],
+	  	waypoints: partialWaypoints,
+	  }
+
+		var promise = googleMapsClient.directions(partialParamToGoogleMaps)
+	    .asPromise()
+	    .then((response) => {
+		  	let durationArray = [];
+
+				response.json.routes[0].legs.forEach(function(element) {
+					durationArray.push(element.duration);
+				});
+
+				return durationArray;
+	    })
+	    .catch((err) => {
+	      console.log(err);
+	    })
+		allGoogleTrafficPromises.push(promise);
+	}
+
+	//Resolve all promises
+	let allDurationArray = [];
+	Promise.all(allGoogleTrafficPromises).then(function(durationArray) {
+		// console.log('busStops', busStops);
+		allDurationArray = [].concat.apply([], durationArray);
+
+
+		busStops.forEach(function (element, j) {
+			busStops[j].duration_sec = allDurationArray[j].value;
+			busStops[j].duration_text = allDurationArray[j].text;
+		})
+	});
+	console.log('busStops.lengtj', busStops.length)
+	return busStops;
+
+
+	// Check if length > 25
+	// if(paramToGoogleMaps.waypoints.length > 25){
+	//
+	// }
 
 
   return googleMapsClient.directions(paramToGoogleMaps)
@@ -127,6 +178,27 @@ var request_arrival_time =  function (busStops) {
   	}
   });
   //return a;
+}
+
+function processGoogleAPI(paramToGoogleMaps, index) {
+	return googleMapsClient.directions(paramToGoogleMaps)
+    .asPromise()
+    .then((response) => {
+
+  		response.json.routes[0].legs.forEach(function(element) {
+  			durationArray.push(element.duration);
+  		});
+
+  		 busStops.forEach(function (element, i) {
+  		 	busStops[i].duration_sec = durationArray[i].value;
+  		 	busStops[i].duration_text = durationArray[i].text;
+  		 })
+       return busStops;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
 }
 
 module.exports = {
