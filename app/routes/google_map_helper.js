@@ -115,7 +115,7 @@ var request_arrival_time =  function (busStops) {
 
 	//Resolve all promises
 	let allDurationArray = [];
-	Promise.all(allGoogleTrafficPromises).then(function(durationArray) {
+	return Promise.all(allGoogleTrafficPromises).then(function(durationArray) {
 		// console.log('busStops', busStops);
 		allDurationArray = [].concat.apply([], durationArray);
 
@@ -124,60 +124,11 @@ var request_arrival_time =  function (busStops) {
 			busStops[j].duration_sec = allDurationArray[j].value;
 			busStops[j].duration_text = allDurationArray[j].text;
 		})
+
+		return busStops;
 	});
-	console.log('busStops.lengtj', busStops.length)
-	return busStops;
 
 
-	// Check if length > 25
-	// if(paramToGoogleMaps.waypoints.length > 25){
-	//
-	// }
-
-
-  return googleMapsClient.directions(paramToGoogleMaps)
-    .asPromise()
-    .then((response) => {
-
-  		response.json.routes[0].legs.forEach(function(element) {
-  			durationArray.push(element.duration);
-  		});
-
-  		 busStops.forEach(function (element, i) {
-  		 	busStops[i].duration_sec = durationArray[i].value;
-  		 	busStops[i].duration_text = durationArray[i].text;
-  		 })
-       return busStops;
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-    return;
-
-  googleMapsClient.directions(paramToGoogleMaps, function(err, response) {
-  	if (!err) {
-  		//console.log('The resonse', util.inspect(response.json.routes[0].legs, {showHidden: false, depth: null}));
-
-  		response.json.routes[0].legs.forEach(function(element) {
-  			durationArray.push(element.duration);
-  		});
-
-  		 busStops.forEach(function (element, i) {
-  		 	busStops[i].duration_sec = durationArray[i].value;
-  		 	busStops[i].duration_text = durationArray[i].text;
-  		 })
-
-       res.body(busStops);
-       res.send(JSON.stringify(busStops));
-   		 //console.log('busStops', busStops);
-       //return busStops;
-  		 // console.log('busStops.length', busStops.length);
-  		 // console.log('durationArray.length', durationArray.length);
-  	} else {
-  		console.log('ERROR', err);
-  	}
-  });
-  //return a;
 }
 
 function processGoogleAPI(paramToGoogleMaps, index) {
