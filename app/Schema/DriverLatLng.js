@@ -6,6 +6,7 @@ const ObjectId = Schema.ObjectId;
 const DriverLatLng = new Schema({
   id: ObjectId,
   mac_address: String,
+  route_id: String,
   locations : [{
     lat: String,
     lng: String,
