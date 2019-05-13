@@ -46,9 +46,6 @@ module.exports = function(app, db) {
 
   app.post('/passenger_request_arrival_real_time', async(req, res) => {
 
-    // res.setHeader('Content-Type', 'application/json');
-    // res.send('[{"title":"123"}]');
-    // return;
     var param = req.body;
 		if(!param.route_id ){
       res.sendStatus(404)
@@ -83,42 +80,13 @@ module.exports = function(app, db) {
 		});
 
 
-  // BusRouteModel.find({}, function(err, users) {
-	// 	console.log(users);
-  //   var userMap = {};
-	//
-  //   users.forEach(function(user) {
-  //     userMap[user._id] = user;
-  //   });
-	//
-  //   res.send(userMap);
-  // });
-
-    // var param = req.body;
-    // var arrivalTimeInfo = await google_map_helper.request_arrival_time();
-    //  res.send(arrivalTimeInfo);
-
   });
 
 
 
   app.post('/list_bueses', async(req, res) => {
-
-    // res.setHeader('Content-Type', 'application/json');
-    // res.send('[{"title":"123"}]');
-    // return;
      var param = req.body;
-		// if(!param.route_id){
-    //   res.sendStatus(404)
-		// 	res.send("error");
-		// 	return;
-		// }
     var mongoQuery = {};
-    // if(!param.route_id){
-    //   res.sendStatus(404)
-    //   res.send("error");
-    //   return;
-    // }
     if(param.region){
       mongoQuery.region = param.region;
     }
@@ -139,32 +107,6 @@ module.exports = function(app, db) {
       buses.forEach(function(bus) {
 
         let busRoutes = bus['bus_routes'];
-        //console.log(busRoutes.count());
-        //asd
-
-        // for(let i =0; i < busRoutes.length; i ++){
-        //     bus_route = busRoutes[i];
-        //
-        //     console.log('bus_route', bus_route);
-        //     return ;
-        //
-        //     let route_id = bus.route_id;
-        //     let route_number = bus.route_number;
-        //     let region = bus.region;
-        //
-        //     let route_start_at_en = bus_route.route_start_at_en;
-        //     let route_start_at_tc = bus_route.route_start_at_tc;
-        //
-        //
-        //     let route_end_at_en = bus_route.route_end_at_en;
-        //     let route_end_at_tc = bus_route.route_end_at_tc;
-        //     returnBuses.push({route_id, route_number, region, route_start_at_en, route_start_at_tc, route_end_at_en, route_end_at_tc})
-        //
-        //
-        // }
-        // console.log('something?');
-        // console.log(returnBuses);
-        // return;
         busRoutes.forEach(function(bus_route) {
           let route_id = bus.route_id;
           let route_number = bus.route_number;
