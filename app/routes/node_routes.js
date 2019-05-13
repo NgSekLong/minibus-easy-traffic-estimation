@@ -1,5 +1,6 @@
 
 const google_map_helper = require('./google_map_helper');
+const distance_calculator_helper = require('./distance_calculator_helper');
 const google_map_helper_87k = require('./google_map_helper_87k');
 
 // Using ES6 imports
@@ -8,11 +9,13 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
 const BusRoute = require('../Schema/BusRoute');
 const DriverLatLng = require('../Schema/DriverLatLng');
+const DriverLastKnownLatLng = require('../Schema/DriverLastKnownLatLng');
 
 
 const MONGODB_CONNECTION_URI = 'mongodb://minibus:CDd[<HX8p{9;1ykn@35.187.148.7/admin'
 const MONGODB_BUS_COLLECTION = 'bus_routes';
 const MONGODB_DRIVERLATLNG_COLLECTION = 'driver_latlng';
+const MONGODB_DRIVER_LAST_KNOWN_LATLNG_COLLECTION = 'driver_last_known_latlng';
 const MONGODB_CONNECTION_PARAM = {
     //uri_decode_auth: true ,
   useNewUrlParser: true,
@@ -23,26 +26,14 @@ const MONGODB_CONNECTION_PARAM = {
   }
 }
 
+const VALID_DISTANCE_M_BETWEEN_GPS_AND_BUS_STOP = 500;
+const VALID_DISTANCE_M_BETWEEN_CURRENT_AND_LAST_GPS = 30;
+
+
 
 
 // routes/note_routes.js
 module.exports = function(app, db) {
-  app.post('/passenger_request_arrival_time_87k', async(req, res) => {
-    var param = req.body;
-    var query = req.query; // $_GET["id"]
-
-		if(!query.direction){
-
-			res.send("error");
-			return;
-		}
-
-
-    var arrivalTimeInfo = await google_map_helper_87k.request_arrival_time(query.direction);
-     res.send(arrivalTimeInfo);
-
-  });
-
 
   app.post('/passenger_request_arrival_real_time', async(req, res) => {
 
@@ -122,32 +113,175 @@ module.exports = function(app, db) {
         });
       });
 
-			// var bus_stops = bus[0]['bus_routes']['bus_stops'][0]//.bus_routes[i].bus_stops;
-      //
-	    // var arrivalTimeInfo = await google_map_helper.request_arrival_time(bus_stops);
-			// console.log(arrivalTimeInfo);
 			res.send(returnBuses);
 		  // docs.forEach
 		});
 
-
-  // BusRouteModel.find({}, function(err, users) {
-	// 	console.log(users);
-  //   var userMap = {};
-	//
-  //   users.forEach(function(user) {
-  //     userMap[user._id] = user;
-  //   });
-	//
-  //   res.send(userMap);
-  // });
-
-    // var param = req.body;
-    // var arrivalTimeInfo = await google_map_helper.request_arrival_time();
-    //  res.send(arrivalTimeInfo);
-
   });
 
+  var saveLatLngToDriverLatLng = async function(lat, lng, time, route_id, mac_address){
+
+  		mongoose.connect(MONGODB_CONNECTION_URI, MONGODB_CONNECTION_PARAM);
+
+      let returnBuses = [];
+  		const DriverLatLngModel = mongoose.model(MONGODB_DRIVERLATLNG_COLLECTION, DriverLatLng);
+
+
+      var driverLatLng = await DriverLatLngModel.findOne({ mac_address, route_id });
+      if(!driverLatLng){
+          driverLatLng = new DriverLatLngModel({ mac_address, route_id });
+      }
+      driverLatLng.locations.push({lat,lng,time});
+      await driverLatLng.save();
+  }
+
+  var findPreviousLatLngFromDriverLocation = function(currrentLatLng, locations){
+    // Only find the closest 7 items to previous infinity loop war
+    var endAt = (locations.length > 10) ? locations.length - 7 : 0;
+    for(var i = locations.length -1 ; i >= endAt; i--){
+      var possiblePreviousLatLng = locations[i];
+
+      var distance = distance_calculator_helper.distanceInMBetweenEarthCoordinates (
+        possiblePreviousLatLng.lat,
+        possiblePreviousLatLng.lng,
+        currrentLatLng.lat,
+        currrentLatLng.lng);
+      console.log('distance', distance);
+      if(distance > VALID_DISTANCE_M_BETWEEN_CURRENT_AND_LAST_GPS){
+        return possiblePreviousLatLng;
+      }
+    }
+    return null;
+  }
+
+  var calculateDriverLastKnowStop = async function (route_id, mac_address) {
+      const DriverLatLngModel = mongoose.model(MONGODB_DRIVERLATLNG_COLLECTION, DriverLatLng);
+  		const BusRouteModel = mongoose.model(MONGODB_BUS_COLLECTION, BusRoute);
+      const DriverLastKnownLatLngModel = mongoose.model(MONGODB_DRIVER_LAST_KNOWN_LATLNG_COLLECTION, DriverLastKnownLatLng);
+
+      const driverLatLng = await DriverLatLngModel.findOne({ mac_address, route_id });
+      const busRoute = await BusRouteModel.findOne({ route_id });
+
+      if(driverLatLng.locations.length < 2){
+        console.log('Only one point of reference, skiped');
+        // Only one point of reference, skiped
+        return;
+      }
+      var currrentLatLng = driverLatLng.locations[driverLatLng.locations.length - 1];
+
+      // console.log('currrentLatLng', currrentLatLng);
+      // console.log('busRoute', busRoute);
+
+
+      busRoute.bus_routes.forEach(async function(singleBusRoute, routeNumCounter) {
+        var closestBusStop = null;
+        singleBusRoute.bus_stops.forEach(function (busStops, busStopNumCounter) {
+
+          var distance = distance_calculator_helper.distanceInMBetweenEarthCoordinates (
+            busStops.latlng.lat,
+            busStops.latlng.lng,
+            currrentLatLng.lat,
+            currrentLatLng.lng);
+          if(distance < VALID_DISTANCE_M_BETWEEN_GPS_AND_BUS_STOP &&
+            (!closestBusStop ||
+            closestBusStop.distance > distance)){
+
+            var isDestionation = false;
+            if(singleBusRoute.bus_stops.length - 1 == busStopNumCounter ){
+              isDestionation = true;
+            }
+
+            closestBusStop = {
+              route_num_counter: routeNumCounter,
+              bus_stop_num_counter: busStopNumCounter,
+              distance: distance,
+              latlng: currrentLatLng,
+              is_destination: isDestionation,
+            };
+          }
+          // console.log('distance', distance);
+        });
+        // console.log('closestBusStop', closestBusStop);
+        // Check if bus is traveling at the same direction as the bus route plan
+
+        // Case 1: if no next bus stops
+        // - Bus is in last destination
+        // - No need to insert to DriverLastKnownLatLng
+        // Case 2: ('current' to 'Next bus stop' distance < 'previous' to 'Next bus stop' distance)
+        // - Bus is headed toward next bus stops
+        // - Save driver last know lat lng
+
+        console.log('routeNumCounter', routeNumCounter);
+        if(!closestBusStop){
+          console.log('Too far away from any bus stop');
+          return
+        }
+        // Check if have next bus stop
+        if(closestBusStop.is_destination == true){
+          console.log('Is last station');
+          // Is last station, can continue
+          return;
+        }
+        var nextClosestBusStopLatLng = singleBusRoute.bus_stops[closestBusStop.bus_stop_num_counter + 1];
+
+        // Find previous latlng
+        var previousLatLng = findPreviousLatLngFromDriverLocation(currrentLatLng, driverLatLng.locations);
+        //console.log('previousLatLng', previousLatLng);
+
+        // No previous latlng
+        if(previousLatLng == null){
+          console.log('No previous lat lng');
+          return;
+        }
+
+        var previousGpsToBusStopDistance = distance_calculator_helper.distanceInMBetweenEarthCoordinates (
+          previousLatLng.lat,
+          previousLatLng.lng,
+          nextClosestBusStopLatLng.latlng.lat,
+          nextClosestBusStopLatLng.latlng.lng);
+
+        var currentGpsToBusStopDistance = distance_calculator_helper.distanceInMBetweenEarthCoordinates (
+          currrentLatLng.lat,
+          currrentLatLng.lng,
+          nextClosestBusStopLatLng.latlng.lat,
+          nextClosestBusStopLatLng.latlng.lng);
+
+        //console.log('routeNumCounter', routeNumCounter);
+        console.log('currrentLatLng', currrentLatLng);
+        console.log('previousLatLng', previousLatLng);
+        console.log('nextClosestBusStopLatLng', nextClosestBusStopLatLng);
+        console.log('currentGpsToBusStopDistance', currentGpsToBusStopDistance);
+        console.log('previousGpsToBusStopDistance', previousGpsToBusStopDistance);
+
+        if(currentGpsToBusStopDistance < previousGpsToBusStopDistance){
+          // Need to update DriverLastKnownLatLngModel!
+          var route_num_counter = routeNumCounter;
+          var driverLastKnownLatLng = await DriverLastKnownLatLngModel.findOne({ mac_address, route_id, route_num_counter });
+
+          if (!driverLastKnownLatLng) {
+            // Initialize driver last know lat lng if possible
+            driverLastKnownLatLng =  new DriverLastKnownLatLngModel({ mac_address, route_id, route_num_counter });
+          }
+          driverLastKnownLatLng.location = {
+            lat: currrentLatLng.lat,
+            lng: currrentLatLng.lng,
+            time: currrentLatLng.time,
+          };
+          driverLastKnownLatLng.bus_stop_num_counter = closestBusStop.bus_stop_num_counter;
+          console.log('driverLastKnownLatLng', driverLastKnownLatLng);
+          console.log('closestBusStop.bus_stop_num_counter', closestBusStop.bus_stop_num_counter);
+          await driverLastKnownLatLng.save();
+          console.log('Saved driverLastKnownLatLng')
+        }
+
+
+
+      });
+
+
+
+
+  }
 
   app.post('/submit_gps', async(req, res) => {
     var param = req.body;
@@ -169,21 +303,9 @@ module.exports = function(app, db) {
     const lng = param.lng;
     const time = param.time * 1000;
     const route_id = param.route_id;
+    await saveLatLngToDriverLatLng(lat, lng, time, route_id, mac_address);
+    await calculateDriverLastKnowStop(route_id, mac_address);
 
-		mongoose.connect(MONGODB_CONNECTION_URI, MONGODB_CONNECTION_PARAM);
-
-    let returnBuses = [];
-		const DriverLatLngModel = mongoose.model(MONGODB_DRIVERLATLNG_COLLECTION, DriverLatLng);
-
-
-    var driverLatLng = await DriverLatLngModel.findOne({ mac_address });
-    if(!driverLatLng){
-        driverLatLng = new DriverLatLngModel({ mac_address });
-    }
-    driverLatLng.locations.push({lat,lng,time});
-    driverLatLng.route_id = route_id;
-    await driverLatLng.save();
-    console.log(driverLatLng);
 		res.send('Done');
     return;
 
