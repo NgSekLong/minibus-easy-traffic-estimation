@@ -109,35 +109,42 @@ module.exports = function(app, db) {
 
     console.log('totalRouteTime', totalRouteTime);
 
-    driverLastKnownLatLngs.forEach(function (driverLastKnownLatLng) {
-      var driverLastKnownBusStopNumCounter = driverLastKnownLatLng.bus_stop_num_counter;
-      switch (currentRouteType) {
-        case ROUTE_TYPE_ENUM.CIRCULAR:
-          for(let repeatCounter = 0; repeatCounter < 3; repeatCounter++){
-            for(var i = 0; i < arrivalTimeInfos.length; i ++){
-              // if(repeatCounter == 0 && i < driverLastKnownBusStopNumCounter) {
-              //   // No need to look back, things in the past #deep
-              //   continue;
-              // }
-              var a = arrivalTimeInfos[i];
-            }
-
-          }
-
-            let busRouteLength = busRouteObject.bus_routes.length;
-          for(var i = 0; i < busRouteLength; i ++){
-            busRouteObject.bus_routes[i];
-          }
-
-          break;
-        case ROUTE_TYPE_ENUM.REGULAR:
-          currentRouteType = ROUTE_TYPE_ENUM.REGULAR;
-          break;
-        default:
-          currentRouteType = ROUTE_TYPE_ENUM.UNKNOWN;
-      }
-
-    });
+    // driverLastKnownLatLngs.forEach(function (driverLastKnownLatLng) {
+    //   var driverLastKnownBusStopNumCounter = driverLastKnownLatLng.bus_stop_num_counter;
+    //   switch (currentRouteType) {
+    //     case ROUTE_TYPE_ENUM.CIRCULAR:
+    //       let accumulatedTime = 0;
+    //       for(let repeatCounter = 0; repeatCounter < 3; repeatCounter++){
+    //         for(var i = 0; i < arrivalTimeInfos.length; i ++){
+    //           if(repeatCounter == 0 && i < driverLastKnownBusStopNumCounter) {
+    //             // No need to look back, things in the past #deep
+    //             continue;
+    //           }
+    //           var arrivalTimeInfo = arrivalTimeInfos[i];
+    //           if(!arrivalTimeInfo.hasOwnProperty('arrival_times')){
+    //             arrivalTimeInfo.arrival_times = [];
+    //           }
+    //           arrivalTimeInfo.arrival_times.push(accumulatedTime);
+    //           accumulatedTime += arrivalTimeInfo.duration_sec;
+    //         }
+    //         // Another round
+    //         accumulatedTime += totalRouteTime;
+    //       }
+    //
+    //         let busRouteLength = busRouteObject.bus_routes.length;
+    //       for(var i = 0; i < busRouteLength; i ++){
+    //         busRouteObject.bus_routes[i];
+    //       }
+    //
+    //       break;
+    //     case ROUTE_TYPE_ENUM.REGULAR:
+    //       currentRouteType = ROUTE_TYPE_ENUM.REGULAR;
+    //       break;
+    //     default:
+    //       currentRouteType = ROUTE_TYPE_ENUM.UNKNOWN;
+    //   }
+    //
+    // });
 
     // busRouteObject
 
