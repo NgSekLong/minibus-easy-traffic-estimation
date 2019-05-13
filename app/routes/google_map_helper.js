@@ -7,67 +7,7 @@ const googleMapsClient = require('@google/maps').createClient({
 });
 
 
-//let currentBusGPSLocation = {lat:22.357647, lng:114.1277058};
-
-// const getInfo = async () => {
-//  console.log(await axios.get('/users'))
-//  console.log(await getGroups())
-//  console.log(await getFavorites())
-//  return 'all done';
-// }
 var request_arrival_time =  function (busStops) {
-	//
-  // let busRoutes = [
-  // 	{
-  //       "road_name_en" : "Start",
-  //       "road_name_tc" : "Start",
-  //       "stops" : [
-  //           {
-  //               "stop_name_en" : "MTR Kwai Fong Station, Hing Ning Rd",
-  //               "stop_name_tc" : "興寧路，港鐵葵芳站",
-  //               "stop_nickname_en" : "",
-  //               "stop_nickname_tc" : "",
-  //               "latlng" : {
-  //                   "lat" : 22.357647,
-  //                   "lng" : 114.1277058
-  //               }
-  //           }
-  //       ]
-  //   },
-  //   {
-  //       "road_name_en" : "Kwai Yan Rd",
-  //       "road_name_tc" : "",
-  //       "stops" : []
-  //   },
-  //   {
-  //       "road_name_en" : "Kwai Yi Rd",
-  //       "road_name_tc" : "",
-  //       "stops" : []
-  //   },
-  //   {
-  //       "road_name_en" : "Kwai Foo Rd",
-  //       "road_name_tc" : "",
-  //       "stops" : [
-  //           {
-  //               "stop_name_en" : "Ho Chuck Centre",
-  //               "stop_name_tc" : "",
-  //               "stop_nickname_en" : "New Kwai Fong Gardens",
-  //               "stop_nickname_tc" : "",
-  //               "latlng" : {
-  //                   "lat" : 22.3576437,
-  //                   "lng" : 114.1287348
-  //               }
-  //           }
-  //       ]
-  //   }];
-
-	//let busStops = [];
-	// busRoutes.forEach(function(busRoute) {
-	// 	busRoute.stops.forEach(function(stop) {
-	// 		busStops.push(stop);
-	// 	});
-	// });
-
   let paramToGoogleMaps = {
   	origin:busStops[0].latlng,
   	destination: busStops[busStops.length - 1].latlng,

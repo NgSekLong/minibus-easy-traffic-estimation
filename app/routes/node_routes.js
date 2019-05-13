@@ -1,7 +1,6 @@
 
 const google_map_helper = require('./google_map_helper');
 const distance_calculator_helper = require('./distance_calculator_helper');
-const google_map_helper_87k = require('./google_map_helper_87k');
 
 // Using ES6 imports
 const mongoose = require('mongoose');
@@ -49,27 +48,100 @@ module.exports = function(app, db) {
 		mongoose.connect(MONGODB_CONNECTION_URI, MONGODB_CONNECTION_PARAM);
 
 		i = 0
+    var route_id = param.route_id;
+    var route_num_counter = param.route_num_counter;
 
 		const BusRouteModel = mongoose.model(MONGODB_BUS_COLLECTION, BusRoute);
-		BusRouteModel.find({route_id: param.route_id}, async function (err, bus) {
-			if(bus.length == 0){
-				res.send('No Route');
+    const busRouteObject = await BusRouteModel.findOne({route_id: route_id});
+
+		if(busRouteObject.length == 0){
+			res.send('No Route');
+			return;
+		}
+    // console.log(bus[0]['bus_routes'][0]['bus_stops']);
+    var busRoutes = busRouteObject['bus_routes'];
+    if(busRoutes.length <= route_num_counter){
+				res.send('route_num_counter too large');
 				return;
-			}
-      // console.log(bus[0]['bus_routes'][0]['bus_stops']);
-      var busRoutes = bus[0]['bus_routes'];
-      if(busRoutes.length <= param.route_num_counter){
-  				res.send('route_num_counter too large');
-  				return;
+    }
+    var bus_stops = busRoutes[route_num_counter]['bus_stops']; //.bus_routes[i].bus_stops;
+
+    var arrivalTimeInfos = await google_map_helper.request_arrival_time(bus_stops);
+
+    // Calculate arrival time!
+    // Step 1: Get all DriverLastKnownLatLng based on: route_id and route_num_counter
+    // Step 2: For each DriverLastKnownLatLng:
+    //          - For each bus stops
+    //          - Calculate one round of route time
+    // Step 3: Combine all the above records into a list of arival timeout
+
+    let busRouteLength = busRouteObject.bus_routes.length;
+
+    let ROUTE_TYPE_ENUM = {
+      CIRCULAR: 1,
+      REGULAR: 2,
+      UNKNOWN: 3,
+    };
+    let currentRouteType;
+    switch (busRouteLength) {
+      case 1:
+        currentRouteType = ROUTE_TYPE_ENUM.CIRCULAR;
+        break;
+      case 2:
+        currentRouteType = ROUTE_TYPE_ENUM.REGULAR;
+        break;
+      default:
+        currentRouteType = ROUTE_TYPE_ENUM.UNKNOWN;
+    }
+
+    const DriverLastKnownLatLngModel = mongoose.model(MONGODB_DRIVER_LAST_KNOWN_LATLNG_COLLECTION, DriverLastKnownLatLng);
+
+    var driverLastKnownLatLngs = await DriverLastKnownLatLngModel.find({ route_id });
+
+    console.log('driverLastKnownLatLngs', driverLastKnownLatLngs);
+
+    let currentRouteNumCounter = route_num_counter;
+
+    let arrivalTimeLatLngInfo = [];
+
+    let totalRouteTime = arrivalTimeInfos.reduce(function (acc, obj) { return acc + obj.duration_sec; }, 0);
+
+
+    console.log('totalRouteTime', totalRouteTime);
+
+    driverLastKnownLatLngs.forEach(function (driverLastKnownLatLng) {
+      var driverLastKnownBusStopNumCounter = driverLastKnownLatLng.bus_stop_num_counter;
+      switch (currentRouteType) {
+        case ROUTE_TYPE_ENUM.CIRCULAR:
+          for(let repeatCounter = 0; repeatCounter < 3; repeatCounter++){
+            for(var i = 0; i < arrivalTimeInfos.length; i ++){
+              // if(repeatCounter == 0 && i < driverLastKnownBusStopNumCounter) {
+              //   // No need to look back, things in the past #deep
+              //   continue;
+              // }
+              var a = arrivalTimeInfos[i];
+            }
+
+          }
+
+            let busRouteLength = busRouteObject.bus_routes.length;
+          for(var i = 0; i < busRouteLength; i ++){
+            busRouteObject.bus_routes[i];
+          }
+
+          break;
+        case ROUTE_TYPE_ENUM.REGULAR:
+          currentRouteType = ROUTE_TYPE_ENUM.REGULAR;
+          break;
+        default:
+          currentRouteType = ROUTE_TYPE_ENUM.UNKNOWN;
       }
-      var bus_stops = busRoutes[param.route_num_counter]['bus_stops']; //.bus_routes[i].bus_stops;
 
-	    var arrivalTimeInfo = await google_map_helper.request_arrival_time(bus_stops);
-			//console.log(arrivalTimeInfo);
-			res.send(arrivalTimeInfo);
-		  // docs.forEach
-		});
+    });
 
+    // busRouteObject
+
+		res.send(arrivalTimeInfos);
 
   });
 
@@ -273,9 +345,6 @@ module.exports = function(app, db) {
           await driverLastKnownLatLng.save();
           console.log('Saved driverLastKnownLatLng')
         }
-
-
-
       });
 
 
