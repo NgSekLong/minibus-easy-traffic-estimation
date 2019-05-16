@@ -17,7 +17,7 @@ var request_arrival_time =  function (busStops) {
 
   busStops.forEach(function(stop) {
   	paramToGoogleMaps.waypoints.push(stop.latlng);
-  })
+  });
 
 
   // Get Direction for an address.
