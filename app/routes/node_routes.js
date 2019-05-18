@@ -179,6 +179,9 @@ module.exports = function(app, db) {
 
     for(var lastKnownLatLngIndex = 0; lastKnownLatLngIndex < driverLastKnownLatLngs.length; lastKnownLatLngIndex++){
       driverLastKnownLatLng = driverLastKnownLatLngs[lastKnownLatLngIndex];
+      console.log('=================');
+      console.log('Another bus lat lng');
+      console.log('=================');
 
       const driverLastKnownBusStopNumCounter = driverLastKnownLatLng.bus_stop_num_counter;
       const driverLastKnownRouteNumCounter = driverLastKnownLatLng.route_num_counter;
@@ -225,8 +228,9 @@ module.exports = function(app, db) {
 
             var isRouteToSave = targetedRouteNumCounter === parseInt(currentRouteNumCounter);
             console.log('isRouteToSave', isRouteToSave);
-            console.log('targetedRouteNumCounter', typeof targetedRouteNumCounter);
-            console.log('currentRouteNumCounter', typeof currentRouteNumCounter);
+            console.log('driverLastKnownRouteNumCounter',  driverLastKnownRouteNumCounter);
+            console.log('targetedRouteNumCounter',  targetedRouteNumCounter);
+            console.log('currentRouteNumCounter',  currentRouteNumCounter);
 
 
             const BusRouteModel = mongoose.model(MONGODB_BUS_COLLECTION, BusRoute);
@@ -271,10 +275,17 @@ module.exports = function(app, db) {
 
     }
 
-    await driverLastKnownLatLngs.forEach(async function (driverLastKnownLatLng) {
-    });
+    // Sort arrival time before sending out
+    // for(var i = 0; i < arrivalTimeInfos.length; i++){
+    //   arrivalTimeInfos[i].arrival_times.sort(function(a, b){return a - b});
+    //
+    //   // console.log(arrivalTimeInfos[i].arrival_times);
+    // }
+    arrivalTimeInfos.forEach(function(arrivalTimeInfo){
+      arrivalTimeInfo.arrival_times.sort(function(a, b){return a - b});
+    })
 
-    console.log('arrivalTimeInfos outside driverLatLng block', arrivalTimeInfos);
+    //console.log('arrivalTimeInfos outside driverLatLng block', arrivalTimeInfos);
 		res.send(arrivalTimeInfos);
 
   });
