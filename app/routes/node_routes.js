@@ -198,7 +198,6 @@ module.exports = function(app, db) {
                 // No need to look back, things in the past #deep
                 continue;
               }
-              accumulatedTime += arrivalTimeInfo.duration_sec;
               // var arrivalTimeInfo = arrivalTimeInfos[i];
               // if(!arrivalTimeInfo.hasOwnProperty('arrival_times')){
               //   arrivalTimeInfo.arrival_times = [];
@@ -208,6 +207,7 @@ module.exports = function(app, db) {
               //   arrivalTimeInfo.arrival_times.push(arrivalTime);
               // }
               arrivalTimeInfos = saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
+              accumulatedTime += arrivalTimeInfo.duration_sec;
             }
             // Another round
             // accumulatedTime += totalRouteTime;
@@ -243,7 +243,6 @@ module.exports = function(app, db) {
                 continue;
               }
               var targetedArrivalTimeInfo = targetedArrivalTimeInfos[i];
-              accumulatedTime += targetedArrivalTimeInfo.duration_sec;
               console.log('accumulatedTime Increase by', targetedArrivalTimeInfo.duration_sec);
 
               // var arrivalTimeInfo = targetedArrivalTimeInfos[i];
@@ -259,6 +258,7 @@ module.exports = function(app, db) {
                 arrivalTimeInfos = saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
                 console.log('Saved time: ', accumulatedTime, 'For bus stop: ', i);
               }
+              accumulatedTime += targetedArrivalTimeInfo.duration_sec;
             }
             //console.log('arrivalTimeInfos', arrivalTimeInfos);
             console.log('arrivalTimeInfos');
