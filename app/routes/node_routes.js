@@ -238,12 +238,14 @@ module.exports = function(app, db) {
             var targetedArrivalTimeInfos = await getArrivalTimeInfos(busRouteObject, route_id, targetedRouteNumCounter);
 
             for(var i = 0; i < targetedArrivalTimeInfos.length; i ++){
-              if(repeatCounter <= targetedRouteNumCounter && i < driverLastKnownBusStopNumCounter) {
+              if(repeatCounter == 0 && i < driverLastKnownBusStopNumCounter) {
                 // No need to look back, things in the past #deep
                 continue;
               }
               var targetedArrivalTimeInfo = targetedArrivalTimeInfos[i];
               accumulatedTime += targetedArrivalTimeInfo.duration_sec;
+              console.log('accumulatedTime Increase by', targetedArrivalTimeInfo.duration_sec);
+
               // var arrivalTimeInfo = targetedArrivalTimeInfos[i];
               // if(!arrivalTimeInfo.hasOwnProperty('arrival_times')){
               //   arrivalTimeInfo.arrival_times = [];
@@ -255,6 +257,7 @@ module.exports = function(app, db) {
               // }
               if(isRouteToSave){
                 arrivalTimeInfos = saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
+                console.log('Saved time: ', accumulatedTime, 'For bus stop: ', i);
               }
             }
             //console.log('arrivalTimeInfos', arrivalTimeInfos);
@@ -269,7 +272,7 @@ module.exports = function(app, db) {
         default:
           currentRouteType = ROUTE_TYPE_ENUM.UNKNOWN;
       }
-      console.log('in driverLatLng block');
+      // console.log('in driverLatLng block');
       //console.log('arrivalTimeInfos in driverLatLng block', arrivalTimeInfos);
 
 
