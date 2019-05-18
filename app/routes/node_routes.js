@@ -501,7 +501,7 @@ module.exports = function(app, db) {
             }
           }
 
-          if (!driverLastKnownLatLng || needChangeRoute = true) {
+          if (!driverLastKnownLatLng || needChangeRoute == true) {
             // Initialize driver last know lat lng if possible
             driverLastKnownLatLng =  new DriverLastKnownLatLngModel({ mac_address, route_id, route_num_counter });
           }
