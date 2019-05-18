@@ -14,7 +14,7 @@ const DriverLastKnownLatLng = require('../Schema/DriverLastKnownLatLng');
 
 
 
-const MONGODB_CONNECTION_URI = 'mongodb://minibus:CDd[<HX8p{9;1ykn@35.229.230.82/admin'
+const MONGODB_CONNECTION_URI = 'mongodb://minibus:CDd[<HX8p{9;1ykn@34.80.120.141/admin'
 const MONGODB_BUS_COLLECTION = 'bus_routes';
 const MONGODB_BUS_DURATION_COLLECTION = 'bus_routes_duration';
 const MONGODB_DRIVERLATLNG_COLLECTION = 'driver_latlng';
