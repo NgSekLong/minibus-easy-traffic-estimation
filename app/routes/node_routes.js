@@ -192,7 +192,7 @@ module.exports = function(app, db) {
       console.log('Another bus lat lng');
       console.log('=================');
 
-      var driverLastKnownBusStopNumCounter = driverLastKnownLatLng.bus_stop_num_counter + 1;
+      var driverLastKnownBusStopNumCounter = driverLastKnownLatLng.bus_stop_num_counter;
       if(driverLastKnownBusStopNumCounter < 0) {driverLastKnownBusStopNumCounter = 0;}
       const driverLastKnownRouteNumCounter = driverLastKnownLatLng.route_num_counter;
       var driverLastKnownTimeDelta = Date.now() - driverLastKnownLatLng.location.time.getTime() ;
@@ -208,7 +208,7 @@ module.exports = function(app, db) {
                 // No need to look back, things in the past #deep
                 continue;
               }
-              // var arrivalTimeInfo = arrivalTimeInfos[i];
+              var arrivalTimeInfo = arrivalTimeInfos[i];
               // if(!arrivalTimeInfo.hasOwnProperty('arrival_times')){
               //   arrivalTimeInfo.arrival_times = [];
               // }
