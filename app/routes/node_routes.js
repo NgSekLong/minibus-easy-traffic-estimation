@@ -99,10 +99,12 @@ module.exports = function(app, db) {
 
   var saveArrivalTime = function(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, index) {
 
-    var arrivalTimeInfo = arrivalTimeInfos[index];
-    if(!arrivalTimeInfo.hasOwnProperty('arrival_times')){
-      arrivalTimeInfo.arrival_times = [];
+    if(arrivalTimeInfos.length < index + 2){
+      // Last route or some issue
+      return arrivalTimeInfos;
     }
+    var arrivalTimeInfo = arrivalTimeInfos[index + 1];
+
     var arrivalTime = accumulatedTime - driverLastKnownTimeDelta;
     if(arrivalTime >= 0){
       arrivalTimeInfo.arrival_times.push(arrivalTime);
@@ -135,6 +137,11 @@ module.exports = function(app, db) {
 				res.send('no Route or route_num_counter too large ');
 				return;
     }
+
+    arrivalTimeInfos.forEach(function(arrivalTimeInfo){
+      arrivalTimeInfo.arrival_times = [];
+    })
+
 
     // Calculate arrival time!
     // Step 1: Get all DriverLastKnownLatLng based on: route_id and route_num_counter
