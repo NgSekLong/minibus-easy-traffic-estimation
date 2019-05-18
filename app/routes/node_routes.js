@@ -103,9 +103,9 @@ module.exports = function(app, db) {
       // Last route or some issue
       return arrivalTimeInfos;
     }
-    var arrivalTimeInfo = arrivalTimeInfos[index + 1];
+    var arrivalTimeInfo = arrivalTimeInfos[index];
 
-    var arrivalTime = accumulatedTime - driverLastKnownTimeDelta;
+    var arrivalTime = accumulatedTime + arrivalTimeInfos[index+1].duration_sec - driverLastKnownTimeDelta ;
     if(arrivalTime >= 0){
       arrivalTimeInfo.arrival_times.push(arrivalTime);
     }
