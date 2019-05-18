@@ -191,7 +191,7 @@ module.exports = function(app, db) {
               }
             }
             // Another round
-            accumulatedTime += totalRouteTime;
+            // accumulatedTime += totalRouteTime;
           }
           //
           // let busRouteLength = busRouteObject.bus_routes.length;
@@ -227,7 +227,7 @@ module.exports = function(app, db) {
               }
             }
             // Another round
-            accumulatedTime += totalRouteTime;
+            // accumulatedTime += totalRouteTime;
           }
           break;
         default:
