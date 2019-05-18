@@ -97,7 +97,7 @@ module.exports = function(app, db) {
     return arrivalTimeInfos;
   }
 
-  var saveArrivalTime = async function(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, index) {
+  var saveArrivalTime = function(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, index) {
 
     var arrivalTimeInfo = arrivalTimeInfos[index];
     if(!arrivalTimeInfo.hasOwnProperty('arrival_times')){
@@ -204,7 +204,7 @@ module.exports = function(app, db) {
               // if(arrivalTime >= 0){
               //   arrivalTimeInfo.arrival_times.push(arrivalTime);
               // }
-              arrivalTimeInfos = await saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
+              arrivalTimeInfos = saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
             }
             // Another round
             // accumulatedTime += totalRouteTime;
@@ -223,7 +223,11 @@ module.exports = function(app, db) {
             // Whether or not is 0 or 1 beased on driver last known route num
             var targetedRouteNumCounter = (driverLastKnownRouteNumCounter + repeatCounter) % 2;
 
-            var isRouteToSave = targetedRouteNumCounter === driverLastKnownRouteNumCounter;
+            var isRouteToSave = targetedRouteNumCounter === currentRouteNumCounter;
+            console.log('isRouteToSave', isRouteToSave);
+            console.log('targetedRouteNumCounter', targetedRouteNumCounter);
+            console.log('driverLastKnownRouteNumCounter', driverLastKnownRouteNumCounter);
+
 
             const BusRouteModel = mongoose.model(MONGODB_BUS_COLLECTION, BusRoute);
             const busRouteObject = await BusRouteModel.findOne({route_id: route_id});
@@ -246,7 +250,7 @@ module.exports = function(app, db) {
               //   arrivalTimeInfo.arrival_times.push(arrivalTime);
               // }
               if(isRouteToSave){
-                arrivalTimeInfos = await saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
+                arrivalTimeInfos = saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
               }
             }
             //console.log('arrivalTimeInfos', arrivalTimeInfos);
