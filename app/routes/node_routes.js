@@ -66,11 +66,13 @@ module.exports = function(app, db) {
     // 30 * 24 * 60 * 60 * 1000
     // console.log('busRouteDurationObject.last_update_at.getTime()', busRouteDurationObject.last_update_at.getTime());
     // console.log('Date.now()', Date.now());
+
     if(busRouteDurationObject === null ||
-      (busRouteDurationObject !== null && busRouteDurationObject.last_update_at.getTime() <= Date.now() + BUS_ROUTE_DURATION_EXPIRATION_MILLISECOND)) {
+      (busRouteDurationObject !== null && busRouteDurationObject.last_update_at.getTime() <= Date.now() - BUS_ROUTE_DURATION_EXPIRATION_MILLISECOND)) {
       var busRouteDurationParam = {};
       busRouteDurationParam.route_id = busRouteObject.route_id;
       busRouteDurationParam.last_update_at = Date.now();
+
       busRouteDurationParam.bus_routes = [];
       for(var i = 0; i < busRouteObject.bus_routes.length; i++){
         var busStops = busRouteObject.bus_routes[i].bus_stops;
@@ -99,13 +101,13 @@ module.exports = function(app, db) {
 
   var saveArrivalTime = function(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, index) {
 
-    if(arrivalTimeInfos.length < index + 2){
-      // Last route or some issue
-      return arrivalTimeInfos;
-    }
+    // if(arrivalTimeInfos.length < index + 2){
+    //   // Last route or some issue
+    //   return arrivalTimeInfos;
+    // }
     var arrivalTimeInfo = arrivalTimeInfos[index];
-
-    var arrivalTime = accumulatedTime + arrivalTimeInfos[index+1].duration_sec - driverLastKnownTimeDelta ;
+    // + arrivalTimeInfos[index+1].duration_sec
+    var arrivalTime = accumulatedTime - driverLastKnownTimeDelta ;
     if(arrivalTime >= 0){
       arrivalTimeInfo.arrival_times.push(arrivalTime);
     }
@@ -213,8 +215,8 @@ module.exports = function(app, db) {
               // if(arrivalTime >= 0){
               //   arrivalTimeInfo.arrival_times.push(arrivalTime);
               // }
-              arrivalTimeInfos = saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
               accumulatedTime += arrivalTimeInfo.duration_sec;
+              arrivalTimeInfos = saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
             }
             // Another round
             // accumulatedTime += totalRouteTime;
@@ -261,11 +263,11 @@ module.exports = function(app, db) {
               // if(arrivalTime >= 0){
               //   arrivalTimeInfo.arrival_times.push(arrivalTime);
               // }
+              accumulatedTime += targetedArrivalTimeInfo.duration_sec;
               if(isRouteToSave){
                 arrivalTimeInfos = saveArrivalTime(arrivalTimeInfos, driverLastKnownTimeDelta, accumulatedTime, i);
                 console.log('Saved time: ', accumulatedTime, 'For bus stop: ', i);
               }
-              accumulatedTime += targetedArrivalTimeInfo.duration_sec;
             }
             //console.log('arrivalTimeInfos', arrivalTimeInfos);
             console.log('arrivalTimeInfos');
