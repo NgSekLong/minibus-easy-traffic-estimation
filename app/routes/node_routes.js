@@ -485,7 +485,7 @@ module.exports = function(app, db) {
         if(currentGpsToBusStopDistance < previousGpsToBusStopDistance){
           // Need to update DriverLastKnownLatLngModel!
           var route_num_counter = routeNumCounter;
-          var driverLastKnownLatLng = await DriverLastKnownLatLngModel.findOne({ mac_address, route_id, route_num_counter });
+          var driverLastKnownLatLng = await DriverLastKnownLatLngModel.findOne({ mac_address, route_id });
 
           if (!driverLastKnownLatLng) {
             // Initialize driver last know lat lng if possible
@@ -496,6 +496,7 @@ module.exports = function(app, db) {
             lng: currrentLatLng.lng,
             time: currrentLatLng.time,
           };
+          driverLastKnownLatLng.route_num_counter = route_num_counter;
           driverLastKnownLatLng.bus_stop_num_counter = closestBusStop.bus_stop_num_counter;
           console.log('driverLastKnownLatLng', driverLastKnownLatLng);
           console.log('closestBusStop.bus_stop_num_counter', closestBusStop.bus_stop_num_counter);
