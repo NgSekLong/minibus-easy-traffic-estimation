@@ -32,7 +32,7 @@ const VALID_DISTANCE_M_BETWEEN_GPS_AND_BUS_STOP = 500;
 const VALID_DISTANCE_M_BETWEEN_CURRENT_AND_LAST_GPS = 30;
 
 const BUS_ROUTE_DURATION_EXPIRATION_MILLISECOND = 30 * 24 * 60 * 60 * 1000; // 30 days
-
+const DRIVER_LAST_KNOWN_EXPIRATION_MILLISECONDS = 30 * 60 * 1000; // 30 mins
 
 
 
@@ -487,7 +487,21 @@ module.exports = function(app, db) {
           var route_num_counter = routeNumCounter;
           var driverLastKnownLatLng = await DriverLastKnownLatLngModel.findOne({ mac_address, route_id });
 
-          if (!driverLastKnownLatLng) {
+          let needChangeRoute = false;
+          if (driverLastKnownLatLng && driverLastKnownLatLng.route_num_counter != route_num_counter) {
+            // Examine if need to change route_num_counter
+            // Case 1: Close to Start / End GPS (within 2 to start / end)
+            // Case 2: Idle for 30 mins
+            if(driverLastKnownLatLng.bus_stop_num_counter < 2 || driverLastKnownLatLng.bus_stop_num_counter > singleBusRoute.bus_stops.length - 3) {
+              needChangeRoute = true;
+            }
+
+            if(driverLastKnownLatLng.location.time.getTime() <= Date.now() - DRIVER_LAST_KNOWN_EXPIRATION_MILLISECONDS) {
+              needChangeRoute = true;
+            }
+          }
+
+          if (!driverLastKnownLatLng || needChangeRoute = true) {
             // Initialize driver last know lat lng if possible
             driverLastKnownLatLng =  new DriverLastKnownLatLngModel({ mac_address, route_id, route_num_counter });
           }
