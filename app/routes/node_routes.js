@@ -488,35 +488,39 @@ module.exports = function(app, db) {
           var route_num_counter = routeNumCounter;
           var driverLastKnownLatLng = await DriverLastKnownLatLngModel.findOne({ mac_address, route_id });
 
-          let needChangeRoute = false;
+          let validDriverLastKnowLatLngToSave = true;
           if (driverLastKnownLatLng && driverLastKnownLatLng.route_num_counter != route_num_counter) {
+            validDriverLastKnowLatLngToSave = false;
             // Examine if need to change route_num_counter
             // Case 1: Close to Start / End GPS (within 2 to start / end)
             // Case 2: Idle for 30 mins
             if(driverLastKnownLatLng.bus_stop_num_counter < 2 || driverLastKnownLatLng.bus_stop_num_counter > singleBusRoute.bus_stops.length - 3) {
-              needChangeRoute = true;
+              validDriverLastKnowLatLngToSave = true;
             }
 
             if(driverLastKnownLatLng.location.time.getTime() <= Date.now() - DRIVER_LAST_KNOWN_EXPIRATION_MILLISECONDS) {
-              needChangeRoute = true;
+              validDriverLastKnowLatLngToSave = true;
             }
           }
 
-          if (!driverLastKnownLatLng || needChangeRoute == true) {
+          if (!driverLastKnownLatLng) {
             // Initialize driver last know lat lng if possible
             driverLastKnownLatLng =  new DriverLastKnownLatLngModel({ mac_address, route_id, route_num_counter });
           }
-          driverLastKnownLatLng.location = {
-            lat: currrentLatLng.lat,
-            lng: currrentLatLng.lng,
-            time: currrentLatLng.time,
-          };
-          driverLastKnownLatLng.route_num_counter = route_num_counter;
-          driverLastKnownLatLng.bus_stop_num_counter = closestBusStop.bus_stop_num_counter;
-          console.log('driverLastKnownLatLng', driverLastKnownLatLng);
-          console.log('closestBusStop.bus_stop_num_counter', closestBusStop.bus_stop_num_counter);
-          await driverLastKnownLatLng.save();
-          console.log('Saved driverLastKnownLatLng')
+
+          if(validDriverLastKnowLatLngToSave){
+            driverLastKnownLatLng.location = {
+              lat: currrentLatLng.lat,
+              lng: currrentLatLng.lng,
+              time: currrentLatLng.time,
+            };
+            driverLastKnownLatLng.route_num_counter = route_num_counter;
+            driverLastKnownLatLng.bus_stop_num_counter = closestBusStop.bus_stop_num_counter;
+            console.log('driverLastKnownLatLng', driverLastKnownLatLng);
+            console.log('closestBusStop.bus_stop_num_counter', closestBusStop.bus_stop_num_counter);
+            await driverLastKnownLatLng.save();
+            console.log('Saved driverLastKnownLatLng')
+          }
         }
       });
 
