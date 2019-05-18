@@ -223,10 +223,10 @@ module.exports = function(app, db) {
             // Whether or not is 0 or 1 beased on driver last known route num
             var targetedRouteNumCounter = (driverLastKnownRouteNumCounter + repeatCounter) % 2;
 
-            var isRouteToSave = targetedRouteNumCounter === currentRouteNumCounter;
+            var isRouteToSave = targetedRouteNumCounter === parseInt(currentRouteNumCounter);
             console.log('isRouteToSave', isRouteToSave);
-            console.log('targetedRouteNumCounter', targetedRouteNumCounter);
-            console.log('driverLastKnownRouteNumCounter', driverLastKnownRouteNumCounter);
+            console.log('targetedRouteNumCounter', typeof targetedRouteNumCounter);
+            console.log('currentRouteNumCounter', typeof currentRouteNumCounter);
 
 
             const BusRouteModel = mongoose.model(MONGODB_BUS_COLLECTION, BusRoute);
