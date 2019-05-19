@@ -443,47 +443,54 @@ module.exports = function(app, db) {
 
         console.log('routeNumCounter', routeNumCounter);
         if(!closestBusStop){
-          console.log('Too far away from any bus stop');
+          console.log('Too far away from any bus stop, no need update driver last lat lng');
           return
         }
+
+        var isUpdateDriverLastKnownLatLng = false
         // Check if have next bus stop
         if(closestBusStop.is_destination == true){
-          console.log('Is last station');
-          // Is last station, can continue
-          return;
+          console.log('Is very close to last station, proceed to update');
+          isUpdateDriverLastKnownLatLng = true;
+        } else {
+
+          var nextClosestBusStopLatLng = singleBusRoute.bus_stops[closestBusStop.bus_stop_num_counter + 1];
+
+          // Find previous latlng
+          var previousLatLng = findPreviousLatLngFromDriverLocation(currrentLatLng, driverLatLng.locations);
+          //console.log('previousLatLng', previousLatLng);
+
+          // No previous latlng
+          if(previousLatLng == null){
+            console.log('No previous lat lng');
+            return;
+          }
+
+          var previousGpsToBusStopDistance = distance_calculator_helper.distanceInMBetweenEarthCoordinates (
+            previousLatLng.lat,
+            previousLatLng.lng,
+            nextClosestBusStopLatLng.latlng.lat,
+            nextClosestBusStopLatLng.latlng.lng);
+
+          var currentGpsToBusStopDistance = distance_calculator_helper.distanceInMBetweenEarthCoordinates (
+            currrentLatLng.lat,
+            currrentLatLng.lng,
+            nextClosestBusStopLatLng.latlng.lat,
+            nextClosestBusStopLatLng.latlng.lng);
+
+          //console.log('routeNumCounter', routeNumCounter);
+          console.log('currrentLatLng', currrentLatLng);
+          console.log('previousLatLng', previousLatLng);
+          console.log('nextClosestBusStopLatLng', nextClosestBusStopLatLng);
+          console.log('currentGpsToBusStopDistance', currentGpsToBusStopDistance);
+          console.log('previousGpsToBusStopDistance', previousGpsToBusStopDistance);
+
+          if(currentGpsToBusStopDistance < previousGpsToBusStopDistance){
+            isUpdateDriverLastKnownLatLng = true;
+          }
         }
-        var nextClosestBusStopLatLng = singleBusRoute.bus_stops[closestBusStop.bus_stop_num_counter + 1];
 
-        // Find previous latlng
-        var previousLatLng = findPreviousLatLngFromDriverLocation(currrentLatLng, driverLatLng.locations);
-        //console.log('previousLatLng', previousLatLng);
-
-        // No previous latlng
-        if(previousLatLng == null){
-          console.log('No previous lat lng');
-          return;
-        }
-
-        var previousGpsToBusStopDistance = distance_calculator_helper.distanceInMBetweenEarthCoordinates (
-          previousLatLng.lat,
-          previousLatLng.lng,
-          nextClosestBusStopLatLng.latlng.lat,
-          nextClosestBusStopLatLng.latlng.lng);
-
-        var currentGpsToBusStopDistance = distance_calculator_helper.distanceInMBetweenEarthCoordinates (
-          currrentLatLng.lat,
-          currrentLatLng.lng,
-          nextClosestBusStopLatLng.latlng.lat,
-          nextClosestBusStopLatLng.latlng.lng);
-
-        //console.log('routeNumCounter', routeNumCounter);
-        console.log('currrentLatLng', currrentLatLng);
-        console.log('previousLatLng', previousLatLng);
-        console.log('nextClosestBusStopLatLng', nextClosestBusStopLatLng);
-        console.log('currentGpsToBusStopDistance', currentGpsToBusStopDistance);
-        console.log('previousGpsToBusStopDistance', previousGpsToBusStopDistance);
-
-        if(currentGpsToBusStopDistance < previousGpsToBusStopDistance){
+        if(isUpdateDriverLastKnownLatLng){
           // Need to update DriverLastKnownLatLngModel!
           var route_num_counter = routeNumCounter;
           var driverLastKnownLatLng = await DriverLastKnownLatLngModel.findOne({ mac_address, route_id });
@@ -494,7 +501,9 @@ module.exports = function(app, db) {
             // Examine if need to change route_num_counter
             // Case 1: Close to Start / End GPS (within 2 to start / end)
             // Case 2: Idle for 30 mins
-            if(driverLastKnownLatLng.bus_stop_num_counter < 2 || driverLastKnownLatLng.bus_stop_num_counter > singleBusRoute.bus_stops.length - 3) {
+            if(driverLastKnownLatLng.bus_stop_num_counter < 2
+              || driverLastKnownLatLng.bus_stop_num_counter > busRoute.bus_routes[driverLastKnownLatLng.route_num_counter].bus_stops.length - 3) {
+              console.log('Can change route_num_counter');
               validDriverLastKnowLatLngToSave = true;
             }
 
