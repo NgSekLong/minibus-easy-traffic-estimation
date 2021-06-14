@@ -1,13 +1,10 @@
-# minibus-easy-traffic-estimation
-
-
 # Minibus Easy: Traffic Estination Backend
 
 ## Introduction
 
 Minibus easy is an Time of Arrival Estimation Application. 
 
-This is the source code for Minibus Easy Backend **Website** built using **NodeJS**
+This is the source code for Minibus Easy **Backend** built using **NodeJS**
 
 ## Architecture
 
