@@ -17,6 +17,4 @@ const BusRoute = new Schema({
   }],
 });
 
-
-
 module.exports = BusRoute

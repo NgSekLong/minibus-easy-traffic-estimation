@@ -15,6 +15,4 @@ const BusRouteDuration = new Schema({
   last_update_at: { type : Date, default: Date.now },
 });
 
-
-
 module.exports = BusRouteDuration

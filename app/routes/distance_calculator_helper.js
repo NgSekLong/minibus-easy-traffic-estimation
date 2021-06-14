@@ -17,7 +17,6 @@ var distanceInMBetweenEarthCoordinates = function (lat1, lon1, lat2, lon2) {
   return earthRadiusKm * c * 1000;
 }
 
-
 module.exports = {
   distanceInMBetweenEarthCoordinates
 }

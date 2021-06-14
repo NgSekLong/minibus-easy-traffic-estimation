@@ -2,7 +2,7 @@
 const util = require('util')
 
 const googleMapsClient = require('@google/maps').createClient({
-	  key: 'AIzaSyAcLR3pU7Jn4ake8WVlV2sPUwaPUm5gwDk',
+	  key: process.env.MAP_API_KEY,
     Promise: Promise
 });
 

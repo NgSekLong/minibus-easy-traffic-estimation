@@ -5,9 +5,6 @@ var cors = require('cors');
 
 const port = process.argv[2]
 
-// server.js
-//const port = 80 ;
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 

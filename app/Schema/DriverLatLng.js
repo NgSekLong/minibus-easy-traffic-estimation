@@ -14,6 +14,4 @@ const DriverLatLng = new Schema({
   }],
 });
 
-
-
 module.exports = DriverLatLng
